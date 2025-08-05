@@ -1,0 +1,46 @@
+
+# Simple chill beat creation outline (just a base beat with mellow synth sounds)
+
+# Base parameters
+bpm = 75
+beat_duration_ms = 60000 // bpm
+
+# Create a simple kick drum sound using a low sine wave burst
+def kick_drum(duration_ms=beat_duration_ms):
+    base_tone = Sine(60).to_audio_segment(duration=duration_ms // 2).fade_out(duration=duration_ms // 2)
+    silence = AudioSegment.silent(duration=duration_ms // 2)
+    return base_tone + silence
+
+# Create a simple snare drum sound using white noise burst (simulated here as high sine wave for simplicity)
+def snare_drum(duration_ms=beat_duration_ms):
+    base_tone = Sine(400).to_audio_segment(duration=duration_ms // 3).fade_out(duration=duration_ms // 3)
+    silence = AudioSegment.silent(duration=duration_ms * 2 // 3)
+    return base_tone + silence
+
+# Create a mellow synth chord using multiple sine waves
+def synth_chord(duration_ms=beat_duration_ms*4):
+    chord = (Sine(261.63).to_audio_segment(duration=duration_ms) - 12)  # Middle C
+    chord = chord.overlay(Sine(329.63).to_audio_segment(duration=duration_ms) - 18)  # E
+    chord = chord.overlay(Sine(392.00).to_audio_segment(duration=duration_ms) - 24)  # G
+    return chord.fade_in(500).fade_out(500)
+
+# Build a 8-bar loop
+bars = 8
+loop = AudioSegment.silent(duration=beat_duration_ms * 4 * bars)
+
+for bar in range(bars):
+    start_time = bar * beat_duration_ms * 4
+    # Kick on 1 and 3
+    loop = loop.overlay(kick_drum(), position=start_time)
+    loop = loop.overlay(kick_drum(), position=start_time + 2 * beat_duration_ms)
+    # Snare on 2 and 4
+    loop = loop.overlay(snare_drum(), position=start_time + beat_duration_ms)
+    loop = loop.overlay(snare_drum(), position=start_time + 3 * beat_duration_ms)
+    # Synth chord on every bar start
+    loop = loop.overlay(synth_chord(duration_ms=beat_duration_ms*4), position=start_time)
+
+# Export the beat
+filename = "/mnt/data/chill_love_beat.wav"
+loop.export(filename, format="wav")
+
+filename
